@@ -47,6 +47,29 @@ namespace Estelle.Function
         }
     }
 
+    public static class GetAllUser
+    {
+        [FunctionName("GetAllUser")]
+        public static string Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get","post",
+                Route = "users")]HttpRequest req,
+            [CosmosDB("DB", "db-container",
+                ConnectionStringSetting = "CosmosDbConnectionString",
+                SqlQuery = "SELECT * FROM c")]
+                IEnumerable<Details> Result,
+            ILogger log)
+        {
+            log.LogInformation("C# HTTP trigger function processed a request.->getall");
+
+            foreach (Details detail in Result)
+            {
+                log.LogInformation(detail.Name);
+                return detail.Name;
+            }
+            return "ok";
+        }
+    }
+
     public static class GetSpecificUser
     {
         [FunctionName("GetSpecificUser")]
