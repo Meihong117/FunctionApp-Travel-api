@@ -17,9 +17,7 @@ public class Details
     [JsonProperty("name")]
     public string Name { get; set; }
 
+    [JsonProperty("familyname")]
+    public string Familyname { get; set; }
 
-
-    [JsonProperty("partitionKey")]
-    public string PartitionKey { get; set; }
-    // public string Description { get; set; }
 }

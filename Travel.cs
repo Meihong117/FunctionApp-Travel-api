@@ -12,36 +12,38 @@ using System.Collections.Generic;
 
 namespace Estelle.Function
 {
-    public static class Travel
+    public static class PostUser
     {
-        [FunctionName("Travel")]
+        [FunctionName("PostUser")]
         public static async Task<IActionResult> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "user")] HttpRequest req,
             [CosmosDB(databaseName: "DB", collectionName: "db-container",
             ConnectionStringSetting = "CosmosDbConnectionString"
             )]IAsyncCollector<dynamic> documentsOut,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
-
             string name = req.Query["name"];
+            string familyname = req.Query["familyname"];
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
             name = name ?? data?.name;
-            if (!string.IsNullOrEmpty(name))
+            familyname = familyname ?? data?.familyname;
+
+            if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(familyname))
             {
                 // Add a JSON document to the output container.
                 await documentsOut.AddAsync(new
                 {
-                    // create a random ID
+                    // how to create a unique ID?
                     id = System.Guid.NewGuid().ToString(),
-                    name = name
+                    name = name,
+                    familyname = familyname
                 });
             }
             string responseMessage = string.IsNullOrEmpty(name)
                 ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
+                : $"Succeed";
 
             return new OkObjectResult(responseMessage);
         }
@@ -61,8 +63,10 @@ namespace Estelle.Function
         {
             log.LogInformation("C# HTTP trigger function processed a request.->getall");
 
+
             foreach (Details detail in Result)
             {
+                // Console.WriteLine(typeof(Details));
                 log.LogInformation(detail.Name);
                 return detail.Name;
             }
