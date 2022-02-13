@@ -55,7 +55,7 @@ namespace Estelle.Function
     public static class GetAllUser
     {
         [FunctionName("GetAllUser")]
-        public static string[] Run(
+        public static List<string> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get","post",
                 Route = "users")]HttpRequest req,
             [CosmosDB("DB", "db-container",
@@ -67,16 +67,11 @@ namespace Estelle.Function
             log.LogInformation("C# HTTP trigger function processed a request.->getall");
 
             List<string> a = new List<string>();
-
-
             foreach (Details detail in Result)
             {
-
                 a.Add(detail.Name);
             }
-            string[] myArray = a.ToArray();
-            Console.WriteLine(myArray);
-            return myArray;
+            return a;
         }
     }
 
