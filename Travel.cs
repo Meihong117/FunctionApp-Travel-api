@@ -16,7 +16,7 @@ namespace Estelle.Function
     {
         [FunctionName("PostUser")]
         public static async Task<IActionResult> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "user")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "postuser")] HttpRequest req,
             [CosmosDB(databaseName: "DB", collectionName: "db-container",
             ConnectionStringSetting = "CosmosDbConnectionString"
             )]IAsyncCollector<dynamic> documentsOut,
@@ -24,6 +24,8 @@ namespace Estelle.Function
         {
             string name = req.Query["name"];
             string familyname = req.Query["familyname"];
+            string userid = req.Query["userid"]; //create user id 
+
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
@@ -35,8 +37,9 @@ namespace Estelle.Function
                 // Add a JSON document to the output container.
                 await documentsOut.AddAsync(new
                 {
-                    // how to create a unique ID?
+                    // how to create ID?
                     id = System.Guid.NewGuid().ToString(),
+
                     name = name,
                     familyname = familyname
                 });
@@ -52,7 +55,7 @@ namespace Estelle.Function
     public static class GetAllUser
     {
         [FunctionName("GetAllUser")]
-        public static string Run(
+        public static string[] Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get","post",
                 Route = "users")]HttpRequest req,
             [CosmosDB("DB", "db-container",
@@ -63,14 +66,17 @@ namespace Estelle.Function
         {
             log.LogInformation("C# HTTP trigger function processed a request.->getall");
 
+            List<string> a = new List<string>();
+
 
             foreach (Details detail in Result)
             {
-                // Console.WriteLine(typeof(Details));
-                log.LogInformation(detail.Name);
-                return detail.Name;
+
+                a.Add(detail.Name);
             }
-            return "ok";
+            string[] myArray = a.ToArray();
+            Console.WriteLine(myArray);
+            return myArray;
         }
     }
 
