@@ -16,7 +16,7 @@ namespace Estelle.Function
     {
         [FunctionName("PostUser")]
         public static async Task<IActionResult> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "postuser")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", "update", Route = "postuser")] HttpRequest req,
             [CosmosDB(databaseName: "DB", collectionName: "db-container",
             ConnectionStringSetting = "CosmosDbConnectionString"
             )]IAsyncCollector<dynamic> documentsOut,
@@ -24,22 +24,20 @@ namespace Estelle.Function
         {
             string name = req.Query["name"];
             string familyname = req.Query["familyname"];
-            string userid = req.Query["userid"]; //create user id 
-
+            string id = req.Query["id"];
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
             name = name ?? data?.name;
             familyname = familyname ?? data?.familyname;
+            id = id ?? data?.id;
 
-            if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(familyname))
+            if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(familyname) && !string.IsNullOrEmpty(id))
             {
                 // Add a JSON document to the output container.
                 await documentsOut.AddAsync(new
                 {
-                    // how to create ID?
-                    id = System.Guid.NewGuid().ToString(),
-
+                    id = id,
                     name = name,
                     familyname = familyname
                 });
@@ -56,7 +54,7 @@ namespace Estelle.Function
     {
         [FunctionName("GetAllUser")]
         public static List<string> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get","post",
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get",
                 Route = "users")]HttpRequest req,
             [CosmosDB("DB", "db-container",
                 ConnectionStringSetting = "CosmosDbConnectionString",
@@ -67,9 +65,11 @@ namespace Estelle.Function
             log.LogInformation("C# HTTP trigger function processed a request.->getall");
 
             List<string> a = new List<string>();
+
+            Console.WriteLine(Result);
             foreach (Details detail in Result)
             {
-                a.Add(detail.Name);
+                a.Add(detail.Id);
             }
             return a;
         }
@@ -79,7 +79,7 @@ namespace Estelle.Function
     {
         [FunctionName("GetSpecificUser")]
         public static string Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post",
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get",
                 Route = "user/{id}")]HttpRequest req,
             [CosmosDB("DB", "db-container",
                 ConnectionStringSetting = "CosmosDbConnectionString",
@@ -97,4 +97,6 @@ namespace Estelle.Function
             return "ok";
         }
     }
+
+
 }
