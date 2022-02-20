@@ -53,25 +53,26 @@ namespace Estelle.Function
     public static class GetAllUser
     {
         [FunctionName("GetAllUser")]
-        public static List<string> Run(
+        public static string Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get",
                 Route = "users")]HttpRequest req,
             [CosmosDB("DB", "db-container",
                 ConnectionStringSetting = "CosmosDbConnectionString",
                 SqlQuery = "SELECT * FROM c")]
-                IEnumerable<Details> Result,
+                IEnumerable<User> Result,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.->getall");
 
-            List<string> a = new List<string>();
-
-            Console.WriteLine(Result);
-            foreach (Details detail in Result)
+            //var
+            List<User> userList = new List<User>();
+            // Console.WriteLine(Result);
+            foreach (User user in Result)
             {
-                a.Add(detail.Id);
+                userList.Add(user);
             }
-            return a;
+            var jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(userList);
+            return jsonString;
         }
     }
 
@@ -84,17 +85,19 @@ namespace Estelle.Function
             [CosmosDB("DB", "db-container",
                 ConnectionStringSetting = "CosmosDbConnectionString",
                 SqlQuery = "SELECT * FROM c WHERE c.id={id}")]
-                IEnumerable<Details> Result,
+                IEnumerable<User> Result,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.->get");
 
-            foreach (Details detail in Result)
+            User newUser = new User();
+
+            foreach (User user in Result)
             {
-                log.LogInformation(detail.Name);
-                return detail.Name;
+                newUser = user;
             }
-            return "ok";
+            var jsonString1 = Newtonsoft.Json.JsonConvert.SerializeObject(newUser);
+            return jsonString1;
         }
     }
 

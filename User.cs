@@ -9,15 +9,15 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
-public class Details
+public class User
 {
     [JsonProperty("id")]
     public string Id { get; set; }
 
     [JsonProperty("name")]
-    public string Name { get; set; }
+    public string FirstName { get; set; }
 
     [JsonProperty("familyname")]
-    public string Familyname { get; set; }
+    public string LastName { get; set; }
 
 }
