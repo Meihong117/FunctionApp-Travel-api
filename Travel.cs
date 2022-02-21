@@ -90,11 +90,11 @@ namespace Estelle.Function
         {
             log.LogInformation("C# HTTP trigger function processed a request.->get");
 
-            User newUser = new User();
+            List<User> newUser = new List<User>();
 
             foreach (User user in Result)
             {
-                newUser = user;
+                newUser.Add(user);
             }
             var jsonString1 = Newtonsoft.Json.JsonConvert.SerializeObject(newUser);
             return jsonString1;
