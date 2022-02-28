@@ -22,27 +22,28 @@ namespace Estelle.Function
             )]IAsyncCollector<dynamic> documentsOut,
             ILogger log)
         {
-            string name = req.Query["name"];
-            string familyname = req.Query["familyname"];
             string id = req.Query["id"];
+            string firstname = req.Query["firstname"];
+            string familyname = req.Query["familyname"];
+
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+            firstname = firstname ?? data?.firstname;
             familyname = familyname ?? data?.familyname;
             id = id ?? data?.id;
 
-            if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(familyname) && !string.IsNullOrEmpty(id))
+            if (!string.IsNullOrEmpty(firstname) && !string.IsNullOrEmpty(familyname) && !string.IsNullOrEmpty(id))
             {
                 // Add a JSON document to the output container.
                 await documentsOut.AddAsync(new
                 {
                     id = id,
-                    name = name,
+                    firstname = firstname,
                     familyname = familyname
                 });
             }
-            string responseMessage = string.IsNullOrEmpty(name)
+            string responseMessage = string.IsNullOrEmpty(firstname)
                 ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
                 : $"Succeed";
 
