@@ -8,6 +8,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Client;
+using System.Net;
+using System.Linq;
+using Microsoft.Extensions.Primitives;
+
 
 
 namespace Estelle.Function
@@ -23,27 +29,27 @@ namespace Estelle.Function
             ILogger log)
         {
             string id = req.Query["id"];
-            string firstname = req.Query["firstname"];
+            string name = req.Query["name"];
             string familyname = req.Query["familyname"];
 
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
-            firstname = firstname ?? data?.firstname;
+            name = name ?? data?.name;
             familyname = familyname ?? data?.familyname;
             id = id ?? data?.id;
 
-            if (!string.IsNullOrEmpty(firstname) && !string.IsNullOrEmpty(familyname) && !string.IsNullOrEmpty(id))
+            if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(familyname) && !string.IsNullOrEmpty(id))
             {
                 // Add a JSON document to the output container.
                 await documentsOut.AddAsync(new
                 {
                     id = id,
-                    firstname = firstname,
+                    name = name,
                     familyname = familyname
                 });
             }
-            string responseMessage = string.IsNullOrEmpty(firstname)
+            string responseMessage = string.IsNullOrEmpty(name)
                 ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
                 : $"Succeed";
 
@@ -102,5 +108,30 @@ namespace Estelle.Function
         }
     }
 
+    public static class DeleteUser
+    {
+        [FunctionName("DeleteUser")]
+        public static string Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete",
+                Route = "deleteuser/{id}")]HttpRequest req,
+            [CosmosDB(ConnectionStringSetting = "CosmosDbConnectionString",
+                SqlQuery = "SELECT * FROM c WHERE c.id={id}")]
+                 DocumentClient client, ILogger log, string id)
+        {
+            var option = new FeedOptions { EnableCrossPartitionQuery = true };
+            var collectionUri = UriFactory.CreateDocumentCollectionUri("DB", "db-container");
+            // Console.WriteLine(id);
+            var document = client.CreateDocumentQuery(collectionUri, option).Where(t => t.Id == id)
+                    .AsEnumerable().FirstOrDefault();
+            // Console.WriteLine(document);
 
+            if (document == null)
+            {
+                return "no such document";
+            }
+            client.DeleteDocumentAsync(document.SelfLink, new RequestOptions { PartitionKey = new PartitionKey(document.Id) });
+            return "ok";
+        }
+    }
 }
+

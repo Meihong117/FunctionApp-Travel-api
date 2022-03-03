@@ -20,4 +20,7 @@ public class User
     [JsonProperty("familyname")]
     public string LastName { get; set; }
 
+    [JsonProperty("id")]
+    public Microsoft.Azure.Documents.PartitionKey PartitionKey { get; set; }
+
 }
