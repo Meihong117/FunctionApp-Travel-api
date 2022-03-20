@@ -22,26 +22,22 @@ namespace Estelle.Function
     {
         [FunctionName("PostUser")]
         public static async Task<IActionResult> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", "update", Route = "postuser")] HttpRequest req,
-            [CosmosDB(databaseName: "DB", collectionName: "db-container",
-            ConnectionStringSetting = "CosmosDbConnectionString"
-            )]IAsyncCollector<dynamic> documentsOut,
-            ILogger log)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "postuser")] HttpRequest req,
+            [CosmosDB(databaseName: "DB", collectionName: "db-container", ConnectionStringSetting = "CosmosDbConnectionString")] IAsyncCollector<dynamic> documentsOut, ILogger log)
         {
             string id = req.Query["id"];
             string name = req.Query["name"];
             string familyname = req.Query["familyname"];
 
-
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
+
             name = name ?? data?.name;
             familyname = familyname ?? data?.familyname;
             id = id ?? data?.id;
 
             if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(familyname) && !string.IsNullOrEmpty(id))
             {
-                // Add a JSON document to the output container.
                 await documentsOut.AddAsync(new
                 {
                     id = id,
@@ -49,8 +45,8 @@ namespace Estelle.Function
                     familyname = familyname
                 });
             }
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
+            string responseMessage = (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(name) || string.IsNullOrEmpty(familyname))
+                ? "This HTTP triggered function executed successfully. Pass a id/name/familyname in the query string or in the request body for a personalized response."
                 : $"Succeed";
 
             return new OkObjectResult(responseMessage);
@@ -61,13 +57,8 @@ namespace Estelle.Function
     {
         [FunctionName("GetAllUser")]
         public static string Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get",
-                Route = "users")]HttpRequest req,
-            [CosmosDB("DB", "db-container",
-                ConnectionStringSetting = "CosmosDbConnectionString",
-                SqlQuery = "SELECT * FROM c")]
-                IEnumerable<User> Result,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users")] HttpRequest req,
+            [CosmosDB("DB", "db-container", ConnectionStringSetting = "CosmosDbConnectionString", SqlQuery = "SELECT * FROM c")] IEnumerable<User> Result, ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.->getall");
 
@@ -87,13 +78,8 @@ namespace Estelle.Function
     {
         [FunctionName("GetSpecificUser")]
         public static string Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get",
-                Route = "user/{id}")]HttpRequest req,
-            [CosmosDB("DB", "db-container",
-                ConnectionStringSetting = "CosmosDbConnectionString",
-                SqlQuery = "SELECT * FROM c WHERE c.id={id}")]
-                IEnumerable<User> Result,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/{id}")] HttpRequest req,
+            [CosmosDB("DB", "db-container", ConnectionStringSetting = "CosmosDbConnectionString", SqlQuery = "SELECT * FROM c WHERE c.id={id}")] IEnumerable<User> Result, ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.->get");
 
@@ -111,12 +97,9 @@ namespace Estelle.Function
     public static class DeleteUser
     {
         [FunctionName("DeleteUser")]
-        public static string Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete",
-                Route = "deleteuser/{id}")]HttpRequest req,
-            [CosmosDB(ConnectionStringSetting = "CosmosDbConnectionString",
-                SqlQuery = "SELECT * FROM c WHERE c.id={id}")]
-                 DocumentClient client, ILogger log, string id)
+        public static async Task<IActionResult> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "deleteuser/{id}")] HttpRequest req,
+            [CosmosDB(ConnectionStringSetting = "CosmosDbConnectionString", SqlQuery = "SELECT * FROM c WHERE c.id={id}")] DocumentClient client, ILogger log, string id)
         {
             var option = new FeedOptions { EnableCrossPartitionQuery = true };
             var collectionUri = UriFactory.CreateDocumentCollectionUri("DB", "db-container");
@@ -127,11 +110,45 @@ namespace Estelle.Function
 
             if (document == null)
             {
-                return "no such document";
+                return new NotFoundResult();
             }
-            client.DeleteDocumentAsync(document.SelfLink, new RequestOptions { PartitionKey = new PartitionKey(document.Id) });
-            return "ok";
+            await client.DeleteDocumentAsync(document.SelfLink, new RequestOptions { PartitionKey = new PartitionKey(document.Id) });
+            return new OkResult();
         }
     }
+
+    public static class UpdateUser
+    {
+        [FunctionName("UpdateUser")]
+        public static async Task<IActionResult> Run(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "updateuser/{id}")] HttpRequest req, [CosmosDB(ConnectionStringSetting = "CosmosDbConnectionString", SqlQuery = "SELECT * FROM c WHERE c.id={id}")] DocumentClient client, ILogger log, string id)
+        {
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            // Console.WriteLine(id);
+
+            dynamic data = JsonConvert.DeserializeObject(requestBody);
+
+            var option = new FeedOptions { EnableCrossPartitionQuery = true };
+            var collectionUri = UriFactory.CreateDocumentCollectionUri("DB", "db-container");
+
+            var document = client.CreateDocumentQuery(collectionUri, option).Where(t => t.Id == id).AsEnumerable().FirstOrDefault();
+
+            if (document == null || id != document.Id)
+            {
+                return new NotFoundResult();
+            }
+            // Console.WriteLine(document.Id);
+            document.SetPropertyValue("id", data.id);
+            document.SetPropertyValue("name", data.name);
+            document.SetPropertyValue("familyname", data.familyname);
+
+            await client.ReplaceDocumentAsync(document);
+
+            return new OkResult();
+        }
+    }
+
+
+
 }
 
