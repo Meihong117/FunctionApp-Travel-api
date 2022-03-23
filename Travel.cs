@@ -22,8 +22,7 @@ namespace Estelle.Function
     {
         [FunctionName("PostUser")]
         public static async Task<IActionResult> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "postuser")] HttpRequest req,
-            [CosmosDB(databaseName: "DB", collectionName: "db-container", ConnectionStringSetting = "CosmosDbConnectionString")] IAsyncCollector<dynamic> documentsOut, ILogger log)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "postuser")] HttpRequest req, [CosmosDB(databaseName: "DB", collectionName: "db-container", ConnectionStringSetting = "CosmosDbConnectionString")] IAsyncCollector<dynamic> documentsOut, ILogger log)
         {
             string id = req.Query["id"];
             string name = req.Query["name"];
@@ -69,8 +68,8 @@ namespace Estelle.Function
             {
                 userList.Add(user);
             }
-            var jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(userList);
-            return jsonString;
+            var allUser = Newtonsoft.Json.JsonConvert.SerializeObject(userList);
+            return allUser;
         }
     }
 
@@ -89,8 +88,8 @@ namespace Estelle.Function
             {
                 newUser.Add(user);
             }
-            var jsonString1 = Newtonsoft.Json.JsonConvert.SerializeObject(newUser);
-            return jsonString1;
+            var specificUser = Newtonsoft.Json.JsonConvert.SerializeObject(newUser);
+            return specificUser;
         }
     }
 
