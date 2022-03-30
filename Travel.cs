@@ -147,7 +147,23 @@ namespace Estelle.Function
         }
     }
 
-
+    // search
+    public static class SearchName
+    {
+        [FunctionName("SearchName")]
+        public static string Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "car/search/name/{name}")] HttpRequest req, string name, [CosmosDB("DB", "db-container", ConnectionStringSetting = "CosmosDbConnectionString", SqlQuery = "SELECT * FROM c WHERE c.name={name}")] IEnumerable<User> Result, ILogger log)
+        {
+            log.LogInformation("C# HTTP trigger function processed a request.");
+            List<User> newUser = new List<User>();
+            foreach (User car in Result)
+            {
+                newUser.Add(car);
+            }
+            var searchName = Newtonsoft.Json.JsonConvert.SerializeObject(newUser);
+            return searchName;
+        }
+    }
 
 }
 
