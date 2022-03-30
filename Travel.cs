@@ -152,13 +152,13 @@ namespace Estelle.Function
     {
         [FunctionName("SearchName")]
         public static string Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "car/search/name/{name}")] HttpRequest req, string name, [CosmosDB("DB", "db-container", ConnectionStringSetting = "CosmosDbConnectionString", SqlQuery = "SELECT * FROM c WHERE c.name={name}")] IEnumerable<User> Result, ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "name/{name}")] HttpRequest req, string name, [CosmosDB("DB", "db-container", ConnectionStringSetting = "CosmosDbConnectionString", SqlQuery = "SELECT * FROM c WHERE c.name={name}")] IEnumerable<User> Result, ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
             List<User> newUser = new List<User>();
-            foreach (User car in Result)
+            foreach (User user in Result)
             {
-                newUser.Add(car);
+                newUser.Add(user);
             }
             var searchName = Newtonsoft.Json.JsonConvert.SerializeObject(newUser);
             return searchName;
