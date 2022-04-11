@@ -183,22 +183,23 @@ namespace Estelle.Function
         }
     }
     //sort by name
-    public static class sortByName
-    {
-        [FunctionName("sortByName")]
-        public static string Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "sort")] HttpRequest req, [CosmosDB("DB", "db-container", ConnectionStringSetting = "CosmosDbConnectionString", SqlQuery = "SELECT * FROM c ORDER BY c.name")] IEnumerable<User> Result, ILogger log)
-        {
-            log.LogInformation("C# HTTP trigger function processed a request.");
-            List<User> sortUser = new List<User>();
-            foreach (User user in Result)
-            {
-                sortUser.Add(user);
-            }
-            var searchName = Newtonsoft.Json.JsonConvert.SerializeObject(sortUser);
-            return searchName;
-        }
-    }
+    // public static class sortByOption
+    // {
+    //     // static string result;
+    //     [FunctionName("sortByOption")]
+    //     public static string Run(
+    //         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "sort/{option}")] HttpRequest req, string option, [CosmosDB("DB", "db-container", ConnectionStringSetting = "CosmosDbConnectionString", SqlQuery = "SELECT * FROM c ORDER BY c.name")] IEnumerable<User> Result, ILogger log)
+    //     {
+    //         log.LogInformation("C# HTTP trigger function processed a request.");
+    //         List<User> sortUser = new List<User>();
+    //         foreach (User user in Result)
+    //         {
+    //             sortUser.Add(user);
+    //         }
+    //         var searchName = Newtonsoft.Json.JsonConvert.SerializeObject(sortUser);
+    //         return searchName;
+    //     }
+    // }
 
 
 }

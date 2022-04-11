@@ -20,7 +20,7 @@ public class User
     [JsonProperty("familyname")]
     public string LastName { get; set; }
 
-    // [ForeignKey("AuthorId")]
-    // public Author Author { get; set; }
 
+    [JsonProperty("option")]
+    public string Option { get; set; }
 }
