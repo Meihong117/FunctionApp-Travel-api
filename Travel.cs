@@ -147,7 +147,7 @@ namespace Estelle.Function
         }
     }
 
-    // search
+    // search /{name}
     public static class SearchName
     {
         [FunctionName("SearchName")]
@@ -182,6 +182,24 @@ namespace Estelle.Function
             return searchName;
         }
     }
+    //sort by name
+    public static class sortByName
+    {
+        [FunctionName("sortByName")]
+        public static string Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "sort")] HttpRequest req, [CosmosDB("DB", "db-container", ConnectionStringSetting = "CosmosDbConnectionString", SqlQuery = "SELECT * FROM c ORDER BY c.name")] IEnumerable<User> Result, ILogger log)
+        {
+            log.LogInformation("C# HTTP trigger function processed a request.");
+            List<User> sortUser = new List<User>();
+            foreach (User user in Result)
+            {
+                sortUser.Add(user);
+            }
+            var searchName = Newtonsoft.Json.JsonConvert.SerializeObject(sortUser);
+            return searchName;
+        }
+    }
+
 
 }
 
